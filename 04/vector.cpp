@@ -1,5 +1,7 @@
 #include "vector.h"
 
+#include <algorithm>
+
 TVector::TVector() : Capacity(), Size(), Ptr(nullptr) {}
 
 TVector::TVector(std::initializer_list<uint32_t> brace_enclosed_list)
