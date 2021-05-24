@@ -3,6 +3,7 @@
 
 #include <random>
 #include <sstream>
+#include <tuple>
 #include <array>
 #include <vector>
 #include <cassert>
@@ -121,18 +122,18 @@ std::string_view removePlusPrefix(std::string_view str) {
 }
 
 void TestBigInt() {
-    {                                       // comparing output with python script
-        constexpr size_t operandsQuantity = 16;
-        constexpr size_t randomNumberLength = 128;
-        std::vector<std::pair<std::string, std::string>> terms(operandsQuantity);
-        for (auto &[lhs, rhs] : terms) {
-            lhs = generateRandomNumber(randomNumberLength);
-            rhs = generateRandomNumber(randomNumberLength);
-        }
-        checkOperation(terms, '+');
-        checkOperation(terms, '-');
-        checkOperation(terms, '*');
-    }
+    // {                                       // comparing output with python script
+    //     constexpr size_t operandsQuantity = 16;
+    //     constexpr size_t randomNumberLength = 128;
+    //     std::vector<std::pair<std::string, std::string>> terms(operandsQuantity);
+    //     for (auto &[lhs, rhs] : terms) {
+    //         lhs = generateRandomNumber(randomNumberLength);
+    //         rhs = generateRandomNumber(randomNumberLength);
+    //     }
+    //     checkOperation(terms, '+');
+    //     checkOperation(terms, '-');
+    //     checkOperation(terms, '*');
+    // }
     {                                       // io operators
         std::array<std::istringstream, 4> inputs = {
             std::istringstream("3901381239408349345771209432747289178329484533713"),
@@ -181,6 +182,79 @@ void TestBigInt() {
         a = d + b;
         os << a;
         assert(os.str() == "246913578024691357802469135782");
+    }
+    {                                       // operator+
+        std::vector<std::tuple<std::string, std::string, std::string>> expressions = {
+            std::make_tuple("946120931239582323409234985283472319871231095034", "043873897487123123873456", "946120931239582323409235029157369806994354968490"),
+            std::make_tuple("-458976452934282431092350394123", "32434983794539845837329453749", "-426541469139742585255020940374"),
+            std::make_tuple("234897234", "-123812398129954", "-123812163232720"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "0", "999999999999999999999999999999999999999999999999"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "1", "1000000000000000000000000000000000000000000000000"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "-1", "999999999999999999999999999999999999999999999998"),
+            std::make_tuple("9999", "1", "10000")
+        };
+        for (const auto &[lhs, rhs, result] : expressions) {
+            std::ostringstream os;
+            os << TBigInt(lhs) + TBigInt(rhs);
+            assert(os.str() == result);
+        }
+    }
+    {                                       // operator-
+        std::vector<std::tuple<std::string, std::string, std::string>> expressions = {
+            std::make_tuple("946120931239582323409234985283472319871231095034", "043873897487123123873456", "946120931239582323409234941409574832748107221578"),
+            std::make_tuple("-458976452934282431092350394123", "32434983794539845837329453749", "-491411436728822276929679847872"),
+            std::make_tuple("234897234", "-123812398129954", "123812633027188"),
+            std::make_tuple("0", "999999999999999999999999999999999999999999999999", "-999999999999999999999999999999999999999999999999"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "-1", "1000000000000000000000000000000000000000000000000"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "1", "999999999999999999999999999999999999999999999998"),
+            std::make_tuple("9999", "-1", "10000")
+        };
+        for (const auto &[lhs, rhs, result] : expressions) {
+            std::ostringstream os;
+            os << TBigInt(lhs) - TBigInt(rhs);
+            assert(os.str() == result);
+        }
+    }
+    {                                       // operator*
+        std::vector<std::tuple<std::string, std::string, std::string>> expressions = {
+            std::make_tuple("946120931239582323409234985283472319871231095034", "043873897487123123873456", "41510012747626900767766071304626751312262276372208574991117898526017504"),
+            std::make_tuple("-458976452934282431092350394123", "32434983794539845837329453749", "-14886893812998830927048117068878383963022819818516449917127"),
+            std::make_tuple("234897234", "-123812398129954", "-29083189855632967147236"),
+            std::make_tuple("0", "999999999999999999999999999999999999999999999999", "0"),
+            std::make_tuple("-1", "999999999999999999999999999999999999999999999999", "-999999999999999999999999999999999999999999999999"),
+            std::make_tuple("999999999999999999999999999999999999999999999999", "1", "999999999999999999999999999999999999999999999999"),
+            std::make_tuple("1000", "10", "10000")
+        };
+        for (const auto &[lhs, rhs, result] : expressions) {
+            std::ostringstream os;
+            os << TBigInt(lhs) * TBigInt(rhs);
+            assert(os.str() == result);
+        }
+    }
+    {                                       // operator<=>
+        TBigInt lhs("2304923123095045623042375938439");
+        TBigInt rhs(lhs);
+
+        assert(lhs == rhs);
+        assert(lhs <= rhs);
+        assert(lhs >= rhs);
+
+        rhs = TBigInt("2304923123095045623042375938440");
+
+        assert(lhs != rhs);
+        assert(lhs < rhs);
+        assert(rhs > lhs);
+
+        rhs = TBigInt("-2304923123095045623042375938439");
+
+        assert(lhs != rhs);
+        assert(rhs < lhs);
+        assert(lhs > rhs);
+
+        lhs = TBigInt(0);
+        rhs = TBigInt("-0");
+
+        assert(lhs == rhs);
     }
     std::cerr << "TestBigInt is OK" << std::endl;
 }
